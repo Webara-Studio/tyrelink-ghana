@@ -6,6 +6,13 @@ A mobile-first, click-through prototype for a Ghanaian tyre marketplace connecti
 
 `Find my tyres → Choose vehicle → Compare tyres → Choose fitting station → Book a fitting time → Review all-in price → Confirmation`
 
+## Backend foundation
+
+- [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql) — initial PostgreSQL/Supabase schema
+- [`docs/user-roles.md`](docs/user-roles.md) — customer, admin, fitter and fitting-station boundaries
+
+The schema deliberately separates the individual **fitter** from the approved **fitting station**. Suppliers are represented as admin-managed marketplace entities in the first release; a supplier portal can be added later.
+
 ## Important
 
 This is a front-end demonstration only. It uses illustrative tyre listings, fitting stations, prices and appointment slots. There is no backend, live inventory, payment processing, account system or real booking.
