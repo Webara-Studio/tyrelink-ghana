@@ -2,9 +2,19 @@
 
 A mobile-first, click-through prototype for a Ghanaian tyre marketplace connecting customers, tyre suppliers and approved fitting stations.
 
-## Prototype journey
+## Prototype journeys
 
-`Find my tyres → Choose vehicle → Compare tyres → Choose fitting station → Book a fitting time → Review all-in price → Confirmation`
+### Customer journey
+
+`Home → Vehicle/size search → Catalogue → Product detail → Compare → Station detail → Services → Appointment → Customer details → Review → Payment → Confirmation → Order tracking`
+
+### Operations journeys
+
+- **Fitting station:** dashboard → order queue → order detail/receipt → appointment calendar → station settings.
+- **Fitter:** today’s jobs → job detail → fitting in progress → completion state → fitter profile.
+- **Admin:** marketplace dashboard → order management → audit trail → inventory → approvals → settlements.
+
+The prototype contains 30 linked screens in one dependency-light `index.html`. The operational pages are representative click-through views for partner and investor discussion; they do not connect to live accounts, inventory or payments.
 
 ## Backend foundation
 
