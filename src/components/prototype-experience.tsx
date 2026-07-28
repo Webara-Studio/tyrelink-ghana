@@ -55,7 +55,7 @@ export function PrototypeExperience() {
     const host = mount;
 
     async function loadSource() {
-      const response = await fetch("/prototype-source.html");
+      const response = await fetch("/prototype-source.html", { cache: "no-store" });
       if (!response.ok) throw new Error("Prototype source could not be loaded");
       const source = await response.text();
       const documentSource = new DOMParser().parseFromString(source, "text/html");
