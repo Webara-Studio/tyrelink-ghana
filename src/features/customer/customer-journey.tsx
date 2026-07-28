@@ -47,6 +47,7 @@ function SizeScreen() {
 
 function CatalogueScreen() {
   const { state, dispatch } = useJourney();
+  const [tier, setTier] = useState("All");
   const requestRef = useRef<AbortController | null>(null);
   const requestSequence = useRef(0);
 
@@ -72,9 +73,11 @@ function CatalogueScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.size.widthMm, state.size.aspectRatio, state.size.rimSize]);
 
-  const prices = state.tyres.map((tyre) => tyre.unitPrice).filter(Number.isFinite);
-  const priceRange = prices.length ? `GHS ${Math.min(...prices).toLocaleString()} – ${Math.max(...prices).toLocaleString()} per tyre` : "Live prices shown below";
-  return <Screen><FlowHead step="2 of 9 · Compare tyres" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Choose your tyres.</h2><p className="journey-sub">Showing live options for <strong>{state.vehicle}</strong> in <strong>{formatTyreSize(state.size)}</strong>.</p><div className="journey-price-range"><span>Typical live price range</span><strong>{priceRange}</strong></div>{state.catalogueStatus === "loading" && <div className="journey-card"><span>Checking live TyreLink stock…</span></div>}{state.catalogueStatus === "error" && <div className="journey-error"><strong>Catalogue unavailable</strong><span>{state.catalogueError}</span><button className="journey-button small" onClick={() => void load()}>Try again</button></div>}{state.catalogueStatus === "ready" && (state.tyres.length ? <div className="journey-product-list">{state.tyres.map((tyre) => <TyreCard key={tyre.id} tyre={tyre} onSelect={() => dispatch({ type: "SELECT_TYRE", tyre })} />)}</div> : <div className="journey-card"><span>No live tyres match this size yet.</span></div>)}</div></Screen>;
+  const filteredTyres = tier === "All" ? state.tyres : state.tyres.filter((tyre) => tyre.category === tier);
+  const prices = filteredTyres.map((tyre) => tyre.unitPrice).filter(Number.isFinite);
+  const priceRange = prices.length ? `GHS ${Math.min(...prices).toLocaleString()} – ${Math.max(...prices).toLocaleString()} per tyre` : "No live prices in this range";
+  const filters = [["All", "All brands"], ["budget", "Budget"], ["mid_range", "Mid-range"], ["premium", "Premium"]] as const;
+  return <Screen><FlowHead step="2 of 9 · Compare tyres" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Choose your tyres.</h2><p className="journey-sub">Showing live options for <strong>{state.vehicle}</strong> in <strong>{formatTyreSize(state.size)}</strong>.</p><div className="chips">{filters.map(([value, label]) => <button className={`chip${tier === value ? " selected" : ""}`} key={value} onClick={() => setTier(value)}>{label}</button>)}</div><div className="journey-price-range"><span>Typical live price range</span><strong>{priceRange}</strong></div>{state.catalogueStatus === "loading" && <div className="journey-card"><span>Checking live TyreLink stock…</span></div>}{state.catalogueStatus === "error" && <div className="journey-error"><strong>Catalogue unavailable</strong><span>{state.catalogueError}</span><button className="journey-button small" onClick={() => void load()}>Try again</button></div>}{state.catalogueStatus === "ready" && (filteredTyres.length ? <div className="journey-product-list">{filteredTyres.map((tyre) => <TyreCard key={tyre.id} tyre={tyre} onSelect={() => dispatch({ type: "SELECT_TYRE", tyre })} />)}</div> : <div className="journey-card"><span>No live tyres match this filter and size yet.</span></div>)}</div></Screen>;
 }
 
 function TyreCard({ tyre, onSelect }: { tyre: TyreProductWithInventory; onSelect: () => void }) {
