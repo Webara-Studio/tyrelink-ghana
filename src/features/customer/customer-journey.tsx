@@ -58,7 +58,7 @@ function CatalogueScreen() {
     return () => requestRef.current?.abort();
     // Catalogue reloads only when the selected size changes or the user retries.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.size.widthMm, state.size.aspectRatio, state.size.rimSize, state.catalogueStatus]);
+  }, [state.size.widthMm, state.size.aspectRatio, state.size.rimSize]);
 
   return <Screen><FlowHead step="2 of 9 · Compare tyres" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Choose your tyres.</h2><p className="journey-sub">Showing live options for <strong>{state.vehicle}</strong> in <strong>{formatTyreSize(state.size)}</strong>.</p>{state.catalogueStatus === "loading" && <div className="journey-card"><span>Checking live TyreLink stock…</span></div>}{state.catalogueStatus === "error" && <div className="journey-error"><strong>Catalogue unavailable</strong><span>{state.catalogueError}</span><button className="journey-button small" onClick={() => void load()}>Try again</button></div>}{state.catalogueStatus === "ready" && (state.tyres.length ? <div className="journey-product-list">{state.tyres.map((tyre) => <TyreCard key={tyre.id} tyre={tyre} onSelect={() => dispatch({ type: "SELECT_TYRE", tyre })} />)}</div> : <div className="journey-card"><span>No live tyres match this size yet.</span></div>)}</div></Screen>;
 }
