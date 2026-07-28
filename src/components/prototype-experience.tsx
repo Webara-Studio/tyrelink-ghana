@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { supabase } from "@/lib/supabase";
 
 type PrototypeWindow = Window & {
   go?: (id: string) => void;
@@ -24,6 +23,13 @@ type Product = {
 type Inventory = { product_id: string; unit_price: number; stock_quantity: number; status: string };
 type Station = { id: string; trading_name: string; address_line: string; city: string; fitting_bays: number; standard_fitting_minutes: number };
 type StationService = { station_id: string; price: number };
+
+async function apiGet<T>(resource: string, params: Record<string, string>) {
+  const query = new URLSearchParams(params);
+  const response = await fetch(`/api/tyrelink/${resource}?${query.toString()}`, { cache: "no-store" });
+  if (!response.ok) throw new Error(`TyreLink API returned ${response.status}`);
+  return (await response.json()) as T;
+}
 
 function escapeHtml(value: string | number) {
   return String(value).replace(/[&<>"']/g, (character) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" })[character] ?? character);
@@ -79,19 +85,24 @@ export function PrototypeExperience() {
         if (!list) return;
         const sizeText = host.querySelector("#size-name")?.textContent?.replace(/\s/g, "") ?? "205/55R16";
         const match = sizeText.match(/(\d+)\/(\d+)R(\d+)/i);
-        let productQuery = supabase
-          .from("tyre_products")
-          .select("id,brand,model,width_mm,aspect_ratio,rim_size,category,warranty_description,wet_grip_rating,mileage_notes")
-          .eq("active", true)
-          .order("category");
+        const productParams: Record<string, string> = {
+          select: "id,brand,model,width_mm,aspect_ratio,rim_size,category,warranty_description,wet_grip_rating,mileage_notes",
+          active: "eq.true",
+          order: "category",
+        };
         if (match) {
-          productQuery = productQuery.eq("width_mm", Number(match[1])).eq("aspect_ratio", Number(match[2])).eq("rim_size", Number(match[3]));
+          productParams.width_mm = `eq.${Number(match[1])}`;
+          productParams.aspect_ratio = `eq.${Number(match[2])}`;
+          productParams.rim_size = `eq.${Number(match[3])}`;
         }
-        const [{ data: products, error: productError }, { data: inventory, error: inventoryError }] = await Promise.all([
-          productQuery,
-          supabase.from("supplier_inventory").select("product_id,unit_price,stock_quantity,status").eq("status", "active"),
-        ]);
-        if (productError || inventoryError) {
+        let products: Product[];
+        let inventory: Inventory[];
+        try {
+          [products, inventory] = await Promise.all([
+            apiGet<Product[]>("tyre_products", productParams),
+            apiGet<Inventory[]>("supplier_inventory", { select: "product_id,unit_price,stock_quantity,status", status: "eq.active" }),
+          ]);
+        } catch {
           list.innerHTML = `<p class="demo-note">The live catalogue could not be reached. Please try again.</p>`;
           return;
         }
@@ -112,11 +123,14 @@ export function PrototypeExperience() {
       async function renderStations() {
         const list = host.querySelector("#station .station-list");
         if (!list) return;
-        const [{ data: stations, error: stationError }, { data: services, error: serviceError }] = await Promise.all([
-          supabase.from("fitting_stations").select("id,trading_name,address_line,city,fitting_bays,standard_fitting_minutes").eq("status", "approved").order("city"),
-          supabase.from("station_services").select("station_id,price").eq("service_id", "50000000-0000-4000-8000-000000000001").eq("active", true),
-        ]);
-        if (stationError || serviceError) {
+        let stations: Station[];
+        let services: StationService[];
+        try {
+          [stations, services] = await Promise.all([
+            apiGet<Station[]>("fitting_stations", { select: "id,trading_name,address_line,city,fitting_bays,standard_fitting_minutes", status: "eq.approved", order: "city" }),
+            apiGet<StationService[]>("station_services", { select: "station_id,price", service_id: "eq.50000000-0000-4000-8000-000000000001", active: "eq.true" }),
+          ]);
+        } catch {
           list.innerHTML = `<p class="demo-note">Approved fitting stations could not be loaded.</p>`;
           return;
         }
@@ -134,8 +148,10 @@ export function PrototypeExperience() {
         const grids = host.querySelectorAll("#slot .slot-grid");
         const firstGrid = grids[0];
         if (!firstGrid || !liveStationId) return;
-        const { data: slots, error } = await supabase.from("station_slots").select("id,starts_at,ends_at").eq("station_id", liveStationId).eq("active", true).order("starts_at");
-        if (error) {
+        let slots: { id: string; starts_at: string; ends_at: string }[];
+        try {
+          slots = await apiGet<{ id: string; starts_at: string; ends_at: string }[]>("station_slots", { select: "id,starts_at,ends_at", station_id: `eq.${liveStationId}`, active: "eq.true", order: "starts_at" });
+        } catch {
           firstGrid.innerHTML = `<p class="demo-note">Available appointment slots could not be loaded.</p>`;
           return;
         }
