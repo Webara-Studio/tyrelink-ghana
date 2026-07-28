@@ -49,6 +49,7 @@ export function PrototypeExperience() {
   useEffect(() => {
     let disposed = false;
     let liveStationId = "";
+    let productRequestId = 0;
     const mount = mountRef.current as HTMLDivElement | null;
     if (!mount) return;
     const host = mount;
@@ -83,6 +84,7 @@ export function PrototypeExperience() {
       async function renderProducts() {
         const list = host.querySelector("#catalogue .product-list");
         if (!list) return;
+        const requestId = ++productRequestId;
         const sizeText = host.querySelector("#size-name")?.textContent?.replace(/\s/g, "") ?? "205/55R16";
         const match = sizeText.match(/(\d+)\/(\d+)R(\d+)/i);
         const productParams: Record<string, string> = {
@@ -103,10 +105,12 @@ export function PrototypeExperience() {
             apiGet<Inventory[]>("supplier_inventory", { select: "product_id,unit_price,stock_quantity,status", status: "eq.active" }),
           ]);
         } catch {
+          if (requestId !== productRequestId) return;
           list.innerHTML = `<p class="demo-note">The live catalogue could not be reached. Please try again.</p>`;
           return;
         }
-        const inventoryByProduct = new Map((inventory as Inventory[]).map((item) => [item.product_id, item]));
+        if (requestId !== productRequestId) return;
+        const inventoryByProduct = new Map(inventory.map((item) => [item.product_id, item]));
         const liveProducts = (products as Product[]).filter((product) => inventoryByProduct.has(product.id));
         list.innerHTML = liveProducts.length
           ? liveProducts.map((product) => {
@@ -175,8 +179,6 @@ export function PrototypeExperience() {
         if (id === "station") void renderStations();
         if (id === "slot") void renderSlots();
       };
-      void renderProducts();
-      void renderStations();
     }
 
     void loadSource().catch(() => {
