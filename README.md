@@ -1,55 +1,32 @@
-# TyreLink Ghana — clickable prototype
+# TyreLink Ghana
 
-A mobile-first, click-through prototype for a Ghanaian tyre marketplace connecting customers, tyre suppliers and approved fitting stations.
+A mobile-first Ghanaian tyre marketplace connecting customers with compatible tyres, approved fitting stations and qualified fitters.
 
-## Prototype journeys
+## Current build
 
-### Customer journey
+This repository now contains a Next.js TypeScript PWA foundation. The original clickable prototype remains available as `index.html` for reference while the customer journey is migrated into reusable application components.
 
-`Home → Vehicle/size search → Catalogue → Product detail → Compare → Station detail → Services → Appointment → Customer details → Review → Payment → Confirmation → Order tracking`
+## Core journey
 
-### Operations journeys
+`Vehicle/size search → catalogue → compare → fitting station → appointment → customer details → order confirmation`
 
-- **Fitting station:** dashboard → order queue → order detail/receipt → appointment calendar → station settings.
-- **Fitter:** today’s jobs → job detail → fitting in progress → completion state → fitter profile.
-- **Admin:** marketplace dashboard → order management → audit trail → inventory → approvals → settlements.
-
-The prototype contains 30 linked screens in one dependency-light `index.html`. The operational pages are representative click-through views for partner and investor discussion; they do not connect to live accounts, inventory or payments.
-
-## Backend foundation
-
-- [`supabase/migrations/001_initial_schema.sql`](supabase/migrations/001_initial_schema.sql) — initial PostgreSQL/Supabase schema
-- [`docs/user-roles.md`](docs/user-roles.md) — customer, admin, fitter and fitting-station boundaries
-
-The schema deliberately separates the individual **fitter** from the approved **fitting station**. Suppliers are represented as admin-managed marketplace entities in the first release; a supplier portal can be added later.
-
-## Important
-
-This is a front-end demonstration only. It uses illustrative tyre listings, fitting stations, prices and appointment slots. There is no backend, live inventory, payment processing, account system or real booking.
-
-## Run locally
+## Local development
 
 ```bash
-python3 -m http.server 4173
+npm install
+npm run dev
 ```
 
-Then open [http://localhost:4173](http://localhost:4173).
+Open `http://localhost:3000`.
 
-## Product idea represented
+## Environment
 
-- Suppliers/manufacturers list tyres.
-- Customers compare tyre brand, size, price and warranty.
-- Tyres are delivered only to approved fitting stations.
-- Fitting fee is calculated by the number of tyres.
-- Customers see the fitting location, price and estimated time before confirming.
-- Suppliers and stations would later receive stock, booking and settlement dashboards.
+Copy `.env.example` to `.env.local` when the TyreLink Supabase API boundary is connected. Do not commit credentials.
 
-## Deferred from this prototype
+## Backend
 
-- Live stock and supplier accounts
-- MoMo/card payments
-- Real maps and location search
-- Customer accounts and order history
-- Supplier dispatch workflow
-- Fitting-station approval and membership billing
-- Warranty and returns workflow
+The TyreLink schema is maintained in `supabase/migrations/001_initial_schema.sql`. It is intended for the isolated TyreLink database boundary, separate from the existing Afrikiko data.
+
+## Roles
+
+See `docs/user-roles.md` for customer, admin, fitter and fitting-station boundaries.

@@ -1,0 +1,11 @@
+{
+  "name": "TyreLink Ghana",
+  "short_name": "TyreLink",
+  "description": "Find the right tyres and book fitting at an approved Ghanaian station.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1117",
+  "theme_color": "#f5b72b",
+  "lang": "en-GH",
+  "icons": []
+}
