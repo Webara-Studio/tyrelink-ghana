@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatTyreSize, listSlots, listStations, listTyres, type TyreProductWithInventory } from "@/lib/tyrelink-api";
 import { JourneyProvider, useJourney } from "@/features/journey/journey-context";
 
@@ -19,18 +19,30 @@ function HomeScreen() {
 }
 
 function VehicleScreen() {
-  const { dispatch } = useJourney();
+  const { state, dispatch } = useJourney();
   const options = [
     ["Toyota Corolla", { widthMm: 205, aspectRatio: 55, rimSize: 16 }],
     ["Hyundai Elantra", { widthMm: 205, aspectRatio: 55, rimSize: 16 }],
-    ["Kia Sportage", { widthMm: 235, aspectRatio: 55, rimSize: 18 }],
   ] as const;
-  return <Screen><FlowHead step="1 of 9 · Your vehicle" back={() => dispatch({ type: "GO_TO", screen: "home" })} /><div className="journey-narrow"><h2>What are you driving?</h2><p className="journey-sub">Choose a vehicle to see compatible tyre sizes.</p><div className="journey-choice-grid">{options.map(([vehicle, size]) => <button className="journey-choice" key={vehicle} onClick={() => dispatch({ type: "SELECT_VEHICLE", vehicle, size })}><strong>{vehicle}</strong><span>{formatTyreSize(size)}</span></button>)}</div></div></Screen>;
+  return <Screen><FlowHead step="1 of 9 · Your vehicle" back={() => dispatch({ type: "GO_TO", screen: "home" })} /><div className="journey-narrow"><h2>What are you driving?</h2><p className="journey-sub">Choose a vehicle to see compatible tyre sizes, or enter the size printed on your tyre.</p><div className="journey-choice-grid">{options.map(([vehicle, size]) => <button className="journey-choice" key={vehicle} onClick={() => dispatch({ type: "SELECT_VEHICLE", vehicle, size })}><span className="journey-vehicle-icon">🚗</span><strong>{vehicle}</strong><span>{formatTyreSize(size)}</span></button>)}<button className="journey-choice" onClick={() => dispatch({ type: "SELECT_VEHICLE", vehicle: "Any vehicle", size: state.size })}><span className="journey-vehicle-icon">＋</span><strong>Enter tyre size</strong><span>For any vehicle</span></button></div></div></Screen>;
 }
 
 function SizeScreen() {
   const { state, dispatch } = useJourney();
-  return <Screen><FlowHead step="1 of 9 · Tyre size" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Confirm your tyre size.</h2><p className="journey-sub">We’ll use this size to find compatible tyres in the live catalogue.</p><div className="journey-card"><strong>{state.vehicle}</strong><span>{formatTyreSize(state.size)}</span><button className="journey-button" onClick={() => dispatch({ type: "SET_SIZE", size: state.size })}>Show compatible tyres →</button></div></div></Screen>;
+  const [width, setWidth] = useState(String(state.size.widthMm));
+  const [aspect, setAspect] = useState(String(state.size.aspectRatio));
+  const [rim, setRim] = useState(String(state.size.rimSize));
+  const [error, setError] = useState("");
+  const submit = () => {
+    const size = { widthMm: Number(width), aspectRatio: Number(aspect), rimSize: Number(rim) };
+    if (![size.widthMm, size.aspectRatio, size.rimSize].every(Number.isFinite) || size.widthMm <= 0 || size.aspectRatio <= 0 || size.rimSize <= 0) {
+      setError("Enter a valid tyre size, for example 205 / 55 R16.");
+      return;
+    }
+    setError("");
+    dispatch({ type: "SET_SIZE", size });
+  };
+  return <Screen><FlowHead step="1 of 9 · Tyre size" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Confirm your tyre size.</h2><p className="journey-sub">We’ll use this size to find compatible tyres in the live catalogue.</p><div className="journey-card"><strong>{state.vehicle}</strong><div className="journey-size-inputs"><label>Width<input className="journey-input" inputMode="numeric" value={width} onChange={(event) => setWidth(event.target.value)} /></label><span>/</span><label>Aspect ratio<input className="journey-input" inputMode="numeric" value={aspect} onChange={(event) => setAspect(event.target.value)} /></label><span>R</span><label>Rim<input className="journey-input" inputMode="numeric" value={rim} onChange={(event) => setRim(event.target.value)} /></label></div><span>Preview: {formatTyreSize({ widthMm: Number(width) || 0, aspectRatio: Number(aspect) || 0, rimSize: Number(rim) || 0 })}</span>{error && <span className="journey-error-text">{error}</span>}<button className="journey-button" onClick={submit}>Show compatible tyres →</button></div></div></Screen>;
 }
 
 function CatalogueScreen() {
@@ -60,7 +72,9 @@ function CatalogueScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.size.widthMm, state.size.aspectRatio, state.size.rimSize]);
 
-  return <Screen><FlowHead step="2 of 9 · Compare tyres" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Choose your tyres.</h2><p className="journey-sub">Showing live options for <strong>{state.vehicle}</strong> in <strong>{formatTyreSize(state.size)}</strong>.</p>{state.catalogueStatus === "loading" && <div className="journey-card"><span>Checking live TyreLink stock…</span></div>}{state.catalogueStatus === "error" && <div className="journey-error"><strong>Catalogue unavailable</strong><span>{state.catalogueError}</span><button className="journey-button small" onClick={() => void load()}>Try again</button></div>}{state.catalogueStatus === "ready" && (state.tyres.length ? <div className="journey-product-list">{state.tyres.map((tyre) => <TyreCard key={tyre.id} tyre={tyre} onSelect={() => dispatch({ type: "SELECT_TYRE", tyre })} />)}</div> : <div className="journey-card"><span>No live tyres match this size yet.</span></div>)}</div></Screen>;
+  const prices = state.tyres.map((tyre) => tyre.unitPrice).filter(Number.isFinite);
+  const priceRange = prices.length ? `GHS ${Math.min(...prices).toLocaleString()} – ${Math.max(...prices).toLocaleString()} per tyre` : "Live prices shown below";
+  return <Screen><FlowHead step="2 of 9 · Compare tyres" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Choose your tyres.</h2><p className="journey-sub">Showing live options for <strong>{state.vehicle}</strong> in <strong>{formatTyreSize(state.size)}</strong>.</p><div className="journey-price-range"><span>Typical live price range</span><strong>{priceRange}</strong></div>{state.catalogueStatus === "loading" && <div className="journey-card"><span>Checking live TyreLink stock…</span></div>}{state.catalogueStatus === "error" && <div className="journey-error"><strong>Catalogue unavailable</strong><span>{state.catalogueError}</span><button className="journey-button small" onClick={() => void load()}>Try again</button></div>}{state.catalogueStatus === "ready" && (state.tyres.length ? <div className="journey-product-list">{state.tyres.map((tyre) => <TyreCard key={tyre.id} tyre={tyre} onSelect={() => dispatch({ type: "SELECT_TYRE", tyre })} />)}</div> : <div className="journey-card"><span>No live tyres match this size yet.</span></div>)}</div></Screen>;
 }
 
 function TyreCard({ tyre, onSelect }: { tyre: TyreProductWithInventory; onSelect: () => void }) {
