@@ -4,7 +4,9 @@ import { createContext, useContext, useMemo, useReducer } from "react";
 import type { Dispatch, PropsWithChildren } from "react";
 import type { TyreProductWithInventory, TyreSize, FittingStationWithPrice, StationSlot } from "@/lib/tyrelink-api";
 
-export type JourneyScreen = "home" | "vehicle" | "size" | "catalogue" | "product" | "station" | "slot" | "details" | "review" | "payment" | "success" | "tracking";
+export type JourneyScreen = "home" | "vehicle" | "size" | "catalogue" | "product" | "station" | "services" | "slot" | "details" | "review" | "payment" | "success" | "tracking";
+
+export type CustomerService = { id: string; name: string; price: number; priceUnit: "per tyre" | "per job" };
 
 export type JourneyState = {
   screen: JourneyScreen;
@@ -19,7 +21,8 @@ export type JourneyState = {
   quantity: number;
   customerName: string;
   customerPhone: string;
-  paymentMethod: "MTN MoMo";
+  paymentMethod: "MTN MoMo" | "Credit/debit card" | "Cash on fitting";
+  selectedServices: CustomerService[];
   orderNumber?: string;
   catalogueStatus: "idle" | "loading" | "ready" | "error";
   catalogueError?: string;
@@ -39,6 +42,8 @@ export type JourneyAction =
   | { type: "SELECT_SLOT"; slot: StationSlot }
   | { type: "SET_CUSTOMER_DETAILS"; name: string; phone: string }
   | { type: "SET_QUANTITY"; quantity: number }
+  | { type: "TOGGLE_SERVICE"; service: CustomerService }
+  | { type: "SET_PAYMENT_METHOD"; method: JourneyState["paymentMethod"] }
   | { type: "CREATE_ORDER" };
 
 const initialState: JourneyState = {
@@ -52,6 +57,7 @@ const initialState: JourneyState = {
   customerName: "",
   customerPhone: "",
   paymentMethod: "MTN MoMo",
+  selectedServices: [],
   catalogueStatus: "idle",
 };
 
@@ -83,6 +89,10 @@ function journeyReducer(state: JourneyState, action: JourneyAction): JourneyStat
       return { ...state, customerName: action.name, customerPhone: action.phone, screen: "review" };
     case "SET_QUANTITY":
       return { ...state, quantity: Math.max(2, Math.min(4, action.quantity)) };
+    case "TOGGLE_SERVICE":
+      return { ...state, selectedServices: state.selectedServices.some((service) => service.id === action.service.id) ? state.selectedServices.filter((service) => service.id !== action.service.id) : [...state.selectedServices, action.service] };
+    case "SET_PAYMENT_METHOD":
+      return { ...state, paymentMethod: action.method };
     case "CREATE_ORDER":
       return { ...state, orderNumber: "TL-DEMO-240724-018", screen: "success" };
     default:
