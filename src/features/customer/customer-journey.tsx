@@ -125,6 +125,10 @@ function ReviewScreen() { const { state, dispatch } = useJourney(); return <Scre
 function PaymentScreen() { const { dispatch } = useJourney(); return <Screen><FlowHead step="9 of 9 · Payment" back={() => dispatch({ type: "GO_TO", screen: "review" })} /><div className="journey-narrow"><h2>Choose how to pay.</h2><div className="journey-card"><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "success" })}>Confirm with MTN MoMo →</button></div></div></Screen>; }
 function SuccessScreen() { const { dispatch } = useJourney(); return <Screen><div className="journey-narrow journey-success"><span className="journey-success-mark">✓</span><h2>Your order is confirmed.</h2><p>Your fitting appointment is booked. We’ll send updates by mobile.</p><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "home" })}>Back to TyreLink</button></div></Screen>; }
 
+function SiteFooter() {
+  return <footer className="site-footer"><div><strong>TyreLink Ghana</strong><span>Testing links for the current application flows.</span></div><nav aria-label="Testing links"><a href="/">Customer journey</a><a href="/station">Fitting station portal</a></nav></footer>;
+}
+
 function Screen({ children }: { children: React.ReactNode }) { return <main className="journey-shell">{children}</main>; }
 
 function JourneyRouter() {
@@ -144,4 +148,4 @@ function JourneyRouter() {
   }
 }
 
-export function CustomerJourney() { return <JourneyProvider><Header /><JourneyRouter /></JourneyProvider>; }
+export function CustomerJourney() { return <JourneyProvider><Header /><JourneyRouter /><SiteFooter /></JourneyProvider>; }

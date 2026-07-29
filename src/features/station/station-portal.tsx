@@ -73,5 +73,5 @@ function PageIntro({ title, copy, back }: { title: string; copy: string; back: (
 
 export function StationPortal() {
   const [view, setView] = useState<StationView>("overview");
-  return <><Header view={view} setView={setView} /><main className="station-shell"><Navigation view={view} setView={setView} />{view === "overview" && <Overview setView={setView} />}{view === "orders" && <Orders setView={setView} />}{view === "order" && <OrderDetail setView={setView} />}{view === "calendar" && <Calendar setView={setView} />}{view === "settings" && <Settings setView={setView} />}</main></>;
+  return <><Header view={view} setView={setView} /><main className="station-shell"><Navigation view={view} setView={setView} />{view === "overview" && <Overview setView={setView} />}{view === "orders" && <Orders setView={setView} />}{view === "order" && <OrderDetail setView={setView} />}{view === "calendar" && <Calendar setView={setView} />}{view === "settings" && <Settings setView={setView} />}</main><footer className="site-footer station-footer"><div><strong>TyreLink Ghana · Station portal</strong><span>Operational testing environment.</span></div><nav aria-label="Main site link"><a href="/">← Back to main site</a></nav></footer></>;
 }
