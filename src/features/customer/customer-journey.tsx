@@ -120,10 +120,33 @@ function SlotScreen() {
   return <Screen><FlowHead step="6 of 9 · Book a time" back={() => dispatch({ type: "GO_TO", screen: "station" })} /><div className="journey-narrow"><h2>When suits you?</h2><p className="journey-sub">Available slots at {station.trading_name}.</p><div className="journey-slot-grid">{state.slots.map((slot) => <button className="journey-slot" key={slot.id} onClick={() => dispatch({ type: "SELECT_SLOT", slot })}>{new Date(slot.starts_at).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</button>)}</div></div></Screen>;
 }
 
-function DetailsScreen() { const { dispatch } = useJourney(); return <Screen><FlowHead step="7 of 9 · Your details" back={() => dispatch({ type: "GO_TO", screen: "slot" })} /><div className="journey-narrow"><h2>Where should we send your updates?</h2><div className="journey-card"><input className="journey-input" placeholder="Full name" defaultValue="Carl Anthony" /><input className="journey-input" placeholder="Mobile number" /><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "review" })}>Continue →</button></div></div></Screen>; }
-function ReviewScreen() { const { state, dispatch } = useJourney(); return <Screen><FlowHead step="8 of 9 · Review" back={() => dispatch({ type: "GO_TO", screen: "details" })} /><div className="journey-narrow"><h2>Nearly sorted.</h2><div className="journey-card"><span>Tyres</span><strong>{state.selectedTyre?.brand} {state.selectedTyre?.model}</strong><span>Station</span><strong>{state.selectedStation?.trading_name}</strong><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "payment" })}>Continue to payment →</button></div></div></Screen>; }
-function PaymentScreen() { const { dispatch } = useJourney(); return <Screen><FlowHead step="9 of 9 · Payment" back={() => dispatch({ type: "GO_TO", screen: "review" })} /><div className="journey-narrow"><h2>Choose how to pay.</h2><div className="journey-card"><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "success" })}>Confirm with MTN MoMo →</button></div></div></Screen>; }
-function SuccessScreen() { const { dispatch } = useJourney(); return <Screen><div className="journey-narrow journey-success"><span className="journey-success-mark">✓</span><h2>Your order is confirmed.</h2><p>Your fitting appointment is booked. We’ll send updates by mobile.</p><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "home" })}>Back to TyreLink</button></div></Screen>; }
+function DetailsScreen() {
+  const { state, dispatch } = useJourney();
+  const [name, setName] = useState(state.customerName || "Carl Anthony");
+  const [phone, setPhone] = useState(state.customerPhone);
+  const [error, setError] = useState("");
+  const submit = () => {
+    if (name.trim().length < 2 || phone.replace(/\D/g, "").length < 9) {
+      setError("Enter your full name and a valid Ghanaian mobile number.");
+      return;
+    }
+    setError("");
+    dispatch({ type: "SET_CUSTOMER_DETAILS", name: name.trim(), phone: phone.trim() });
+  };
+  return <Screen><FlowHead step="7 of 9 · Your details" back={() => dispatch({ type: "GO_TO", screen: "slot" })} /><div className="journey-narrow"><h2>Where should we send your updates?</h2><p className="journey-sub">Your mobile number is the primary contact for order and fitting notifications.</p><div className="journey-card"><label className="journey-field-label">Full name<input className="journey-input" placeholder="Full name" value={name} onChange={(event) => setName(event.target.value)} /></label><label className="journey-field-label">Mobile number<input className="journey-input" placeholder="024 000 0000" inputMode="tel" value={phone} onChange={(event) => setPhone(event.target.value)} /></label>{error && <span className="journey-error-text">{error}</span>}<button className="journey-button" onClick={submit}>Review order →</button></div></div></Screen>;
+}
+
+function ReviewScreen() {
+  const { state, dispatch } = useJourney();
+  const unitPrice = state.selectedTyre?.unitPrice ?? 0;
+  const fittingPrice = state.selectedStation?.fittingPrice ?? 0;
+  const total = state.quantity * (unitPrice + fittingPrice);
+  return <Screen><FlowHead step="8 of 9 · Review" back={() => dispatch({ type: "GO_TO", screen: "details" })} /><div className="journey-narrow"><h2>Nearly sorted.</h2><p className="journey-sub">Check the details before confirming your payment.</p><div className="journey-card"><div className="journey-summary-row"><span>Customer</span><strong>{state.customerName}</strong></div><div className="journey-summary-row"><span>Tyres</span><strong>{state.selectedTyre?.brand} {state.selectedTyre?.model}</strong></div><div className="journey-summary-row"><span>Quantity</span><div className="journey-quantity"><button aria-label="Remove one tyre" onClick={() => dispatch({ type: "SET_QUANTITY", quantity: state.quantity - 1 })}>−</button><strong>{state.quantity}</strong><button aria-label="Add one tyre" onClick={() => dispatch({ type: "SET_QUANTITY", quantity: state.quantity + 1 })}>+</button></div></div><div className="journey-summary-row"><span>Station</span><strong>{state.selectedStation?.trading_name}</strong></div><div className="journey-summary-row"><span>Appointment</span><strong>{state.selectedSlot ? new Date(state.selectedSlot.starts_at).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "Selected slot"}</strong></div><div className="journey-summary-total"><span>Total</span><strong>GHS {total.toLocaleString()}</strong></div><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "payment" })}>Continue to payment →</button></div></div></Screen>;
+}
+
+function PaymentScreen() { const { dispatch } = useJourney(); return <Screen><FlowHead step="9 of 9 · Payment" back={() => dispatch({ type: "GO_TO", screen: "review" })} /><div className="journey-narrow"><h2>Choose how to pay.</h2><p className="journey-sub">Demo checkout only — no payment is captured in this prototype.</p><div className="journey-card"><button className="journey-payment-option" onClick={() => dispatch({ type: "CREATE_ORDER" })}><span>🟡 MTN MoMo</span><strong>Confirm demo payment →</strong></button></div></div></Screen>; }
+function SuccessScreen() { const { state, dispatch } = useJourney(); return <Screen><div className="journey-narrow journey-success"><span className="journey-success-mark">✓</span><h2>Your order is confirmed.</h2><p>Order <strong>{state.orderNumber}</strong> has been recorded for {state.customerName}. Your fitting appointment is booked.</p><div className="journey-card journey-success-card"><span>Payment status</span><strong>Demo payment confirmed via MTN MoMo</strong><span>Next step</span><strong>Tyres will be received and prepared by {state.selectedStation?.trading_name}.</strong><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "tracking" })}>Track this order →</button></div><button className="journey-back" onClick={() => dispatch({ type: "GO_TO", screen: "home" })}>Back to TyreLink</button></div></Screen>; }
+function TrackingScreen() { const { state, dispatch } = useJourney(); return <Screen><FlowHead step="Customer order tracking" back={() => dispatch({ type: "GO_TO", screen: "success" })} /><div className="journey-narrow"><h2>Track your order.</h2><p className="journey-sub">{state.orderNumber} · {state.selectedStation?.trading_name}</p><div className="journey-card journey-timeline"><div className="journey-timeline-item done"><strong>Payment confirmed</strong><span>Demo payment recorded</span></div><div className="journey-timeline-item active"><strong>Tyres heading to station</strong><span>The station will confirm receipt next.</span></div><div className="journey-timeline-item"><strong>Fitting appointment</strong><span>{state.selectedSlot ? new Date(state.selectedSlot.starts_at).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "Appointment booked"}</span></div><div className="journey-timeline-item"><strong>Fitting complete</strong><span>Waiting for the fitting team.</span></div></div><button className="journey-button" onClick={() => dispatch({ type: "GO_TO", screen: "home" })}>Back to TyreLink</button></div></Screen>; }
 
 function SiteFooter() {
   return <footer className="site-footer"><div><strong>TyreLink Ghana</strong><span>Testing links for the current application flows.</span></div><nav aria-label="Testing links"><a href="/">Customer journey</a><a href="/station">Fitting station portal</a></nav></footer>;
@@ -145,6 +168,7 @@ function JourneyRouter() {
     case "review": return <ReviewScreen />;
     case "payment": return <PaymentScreen />;
     case "success": return <SuccessScreen />;
+    case "tracking": return <TrackingScreen />;
   }
 }
 

@@ -4,7 +4,7 @@ import { createContext, useContext, useMemo, useReducer } from "react";
 import type { Dispatch, PropsWithChildren } from "react";
 import type { TyreProductWithInventory, TyreSize, FittingStationWithPrice, StationSlot } from "@/lib/tyrelink-api";
 
-export type JourneyScreen = "home" | "vehicle" | "size" | "catalogue" | "product" | "station" | "slot" | "details" | "review" | "payment" | "success";
+export type JourneyScreen = "home" | "vehicle" | "size" | "catalogue" | "product" | "station" | "slot" | "details" | "review" | "payment" | "success" | "tracking";
 
 export type JourneyState = {
   screen: JourneyScreen;
@@ -16,6 +16,11 @@ export type JourneyState = {
   selectedStation?: FittingStationWithPrice;
   slots: StationSlot[];
   selectedSlot?: StationSlot;
+  quantity: number;
+  customerName: string;
+  customerPhone: string;
+  paymentMethod: "MTN MoMo";
+  orderNumber?: string;
   catalogueStatus: "idle" | "loading" | "ready" | "error";
   catalogueError?: string;
 };
@@ -31,7 +36,10 @@ export type JourneyAction =
   | { type: "STATIONS_READY"; stations: FittingStationWithPrice[] }
   | { type: "SELECT_STATION"; station: FittingStationWithPrice }
   | { type: "SLOTS_READY"; slots: StationSlot[] }
-  | { type: "SELECT_SLOT"; slot: StationSlot };
+  | { type: "SELECT_SLOT"; slot: StationSlot }
+  | { type: "SET_CUSTOMER_DETAILS"; name: string; phone: string }
+  | { type: "SET_QUANTITY"; quantity: number }
+  | { type: "CREATE_ORDER" };
 
 const initialState: JourneyState = {
   screen: "home",
@@ -40,6 +48,10 @@ const initialState: JourneyState = {
   tyres: [],
   stations: [],
   slots: [],
+  quantity: 4,
+  customerName: "",
+  customerPhone: "",
+  paymentMethod: "MTN MoMo",
   catalogueStatus: "idle",
 };
 
@@ -67,6 +79,12 @@ function journeyReducer(state: JourneyState, action: JourneyAction): JourneyStat
       return { ...state, slots: action.slots };
     case "SELECT_SLOT":
       return { ...state, selectedSlot: action.slot, screen: "details" };
+    case "SET_CUSTOMER_DETAILS":
+      return { ...state, customerName: action.name, customerPhone: action.phone, screen: "review" };
+    case "SET_QUANTITY":
+      return { ...state, quantity: Math.max(2, Math.min(4, action.quantity)) };
+    case "CREATE_ORDER":
+      return { ...state, orderNumber: "TL-DEMO-240724-018", screen: "success" };
     default:
       return state;
   }
