@@ -27,6 +27,19 @@ function VehicleScreen() {
   return <Screen><FlowHead step="1 of 9 · Your vehicle" back={() => dispatch({ type: "GO_TO", screen: "home" })} /><div className="journey-narrow"><h2>What are you driving?</h2><p className="journey-sub">Choose a vehicle to see compatible tyre sizes, or enter the size printed on your tyre.</p><div className="journey-choice-grid">{options.map(([vehicle, size]) => <button className="journey-choice" key={vehicle} onClick={() => dispatch({ type: "SELECT_VEHICLE", vehicle, size })}><span className="journey-vehicle-icon">🚗</span><strong>{vehicle}</strong><span>{formatTyreSize(size)}</span></button>)}<button className="journey-choice" onClick={() => dispatch({ type: "SELECT_VEHICLE", vehicle: "Any vehicle", size: state.size })}><span className="journey-vehicle-icon">＋</span><strong>Enter tyre size</strong><span>For any vehicle</span></button></div></div></Screen>;
 }
 
+function TutorialVideo() {
+  return <section className="tutorial-card" aria-labelledby="tyre-size-tutorial-title">
+    <div className="tutorial-heading">
+      <div><span className="journey-tag">Coming soon</span><h3 id="tyre-size-tutorial-title">How to find your tyre size</h3></div>
+      <span className="tutorial-duration">Tutorial video</span>
+    </div>
+    <div className="video-frame">
+      <iframe src="https://www.youtube-nocookie.com/embed/VIDEO_ID?rel=0" title="How to find your tyre size tutorial — placeholder" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen />
+      <div className="video-placeholder"><strong>Tyre-size tutorial placeholder</strong><span>Replace <code>VIDEO_ID</code> with the final YouTube video.</span></div>
+    </div>
+  </section>;
+}
+
 function SizeScreen() {
   const { state, dispatch } = useJourney();
   const [width, setWidth] = useState(String(state.size.widthMm));
@@ -42,7 +55,7 @@ function SizeScreen() {
     setError("");
     dispatch({ type: "SET_SIZE", size });
   };
-  return <Screen><FlowHead step="1 of 9 · Tyre size" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Confirm your tyre size.</h2><p className="journey-sub">We’ll use this size to find compatible tyres in the live catalogue.</p><div className="journey-card"><strong>{state.vehicle}</strong><div className="journey-size-inputs"><label>Width<input className="journey-input" inputMode="numeric" value={width} onChange={(event) => setWidth(event.target.value)} /></label><span>/</span><label>Aspect ratio<input className="journey-input" inputMode="numeric" value={aspect} onChange={(event) => setAspect(event.target.value)} /></label><span>R</span><label>Rim<input className="journey-input" inputMode="numeric" value={rim} onChange={(event) => setRim(event.target.value)} /></label></div><span>Preview: {formatTyreSize({ widthMm: Number(width) || 0, aspectRatio: Number(aspect) || 0, rimSize: Number(rim) || 0 })}</span>{error && <span className="journey-error-text">{error}</span>}<button className="journey-button" onClick={submit}>Show compatible tyres →</button></div></div></Screen>;
+  return <Screen><FlowHead step="1 of 9 · Tyre size" back={() => dispatch({ type: "GO_TO", screen: "vehicle" })} /><div className="journey-narrow"><h2>Confirm your tyre size.</h2><p className="journey-sub">We’ll use this size to find compatible tyres in the live catalogue.</p><div className="journey-card"><strong>{state.vehicle}</strong><div className="journey-size-inputs"><label>Width<input className="journey-input" inputMode="numeric" value={width} onChange={(event) => setWidth(event.target.value)} /></label><span>/</span><label>Aspect ratio<input className="journey-input" inputMode="numeric" value={aspect} onChange={(event) => setAspect(event.target.value)} /></label><span>R</span><label>Rim<input className="journey-input" inputMode="numeric" value={rim} onChange={(event) => setRim(event.target.value)} /></label></div><span>Preview: {formatTyreSize({ widthMm: Number(width) || 0, aspectRatio: Number(aspect) || 0, rimSize: Number(rim) || 0 })}</span>{error && <span className="journey-error-text">{error}</span>}<button className="journey-button" onClick={submit}>Show compatible tyres →</button></div><TutorialVideo /></div></Screen>;
 }
 
 function CatalogueScreen() {
