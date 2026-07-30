@@ -2,108 +2,13 @@
 
 import { createContext, useContext, useMemo, useReducer } from "react";
 import type { Dispatch, PropsWithChildren } from "react";
-import type { TyreProductWithInventory, TyreSize, FittingStationWithPrice, StationSlot } from "@/lib/tyrelink-api";
-
-export type JourneyScreen = "home" | "vehicle" | "size" | "catalogue" | "product" | "station" | "services" | "slot" | "details" | "review" | "payment" | "success" | "tracking";
-
-export type CustomerService = { id: string; name: string; price: number; priceUnit: "per tyre" | "per job" };
-
-export type JourneyState = {
-  screen: JourneyScreen;
-  vehicle: string;
-  size: TyreSize;
-  tyres: TyreProductWithInventory[];
-  selectedTyre?: TyreProductWithInventory;
-  stations: FittingStationWithPrice[];
-  selectedStation?: FittingStationWithPrice;
-  slots: StationSlot[];
-  selectedSlot?: StationSlot;
-  quantity: number;
-  customerName: string;
-  customerPhone: string;
-  paymentMethod: "MTN MoMo" | "Credit/debit card" | "Cash on fitting";
-  selectedServices: CustomerService[];
-  orderNumber?: string;
-  catalogueStatus: "idle" | "loading" | "ready" | "error";
-  catalogueError?: string;
-};
-
-export type JourneyAction =
-  | { type: "GO_TO"; screen: JourneyScreen }
-  | { type: "SELECT_VEHICLE"; vehicle: string; size: TyreSize }
-  | { type: "SET_SIZE"; size: TyreSize }
-  | { type: "CATALOGUE_LOADING" }
-  | { type: "CATALOGUE_READY"; tyres: TyreProductWithInventory[] }
-  | { type: "CATALOGUE_ERROR"; message: string }
-  | { type: "SELECT_TYRE"; tyre: TyreProductWithInventory }
-  | { type: "STATIONS_READY"; stations: FittingStationWithPrice[] }
-  | { type: "SELECT_STATION"; station: FittingStationWithPrice }
-  | { type: "SLOTS_READY"; slots: StationSlot[] }
-  | { type: "SELECT_SLOT"; slot: StationSlot }
-  | { type: "SET_CUSTOMER_DETAILS"; name: string; phone: string }
-  | { type: "SET_QUANTITY"; quantity: number }
-  | { type: "TOGGLE_SERVICE"; service: CustomerService }
-  | { type: "SET_PAYMENT_METHOD"; method: JourneyState["paymentMethod"] }
-  | { type: "CREATE_ORDER" };
-
-const initialState: JourneyState = {
-  screen: "home",
-  vehicle: "Toyota Corolla",
-  size: { widthMm: 205, aspectRatio: 55, rimSize: 16 },
-  tyres: [],
-  stations: [],
-  slots: [],
-  quantity: 4,
-  customerName: "",
-  customerPhone: "",
-  paymentMethod: "MTN MoMo",
-  selectedServices: [],
-  catalogueStatus: "idle",
-};
-
-function journeyReducer(state: JourneyState, action: JourneyAction): JourneyState {
-  switch (action.type) {
-    case "GO_TO":
-      return { ...state, screen: action.screen };
-    case "SELECT_VEHICLE":
-      return { ...state, vehicle: action.vehicle, size: action.size, screen: "size" };
-    case "SET_SIZE":
-      return { ...state, size: action.size, selectedTyre: undefined, catalogueStatus: "idle", screen: "catalogue" };
-    case "CATALOGUE_LOADING":
-      return { ...state, catalogueStatus: "loading", catalogueError: undefined };
-    case "CATALOGUE_READY":
-      return { ...state, tyres: action.tyres, catalogueStatus: "ready", catalogueError: undefined };
-    case "CATALOGUE_ERROR":
-      return { ...state, catalogueStatus: "error", catalogueError: action.message };
-    case "SELECT_TYRE":
-      return { ...state, selectedTyre: action.tyre, screen: "product" };
-    case "STATIONS_READY":
-      return { ...state, stations: action.stations };
-    case "SELECT_STATION":
-      return { ...state, selectedStation: action.station, screen: "station" };
-    case "SLOTS_READY":
-      return { ...state, slots: action.slots };
-    case "SELECT_SLOT":
-      return { ...state, selectedSlot: action.slot, screen: "details" };
-    case "SET_CUSTOMER_DETAILS":
-      return { ...state, customerName: action.name, customerPhone: action.phone, screen: "review" };
-    case "SET_QUANTITY":
-      return { ...state, quantity: Math.max(2, Math.min(4, action.quantity)) };
-    case "TOGGLE_SERVICE":
-      return { ...state, selectedServices: state.selectedServices.some((service) => service.id === action.service.id) ? state.selectedServices.filter((service) => service.id !== action.service.id) : [...state.selectedServices, action.service] };
-    case "SET_PAYMENT_METHOD":
-      return { ...state, paymentMethod: action.method };
-    case "CREATE_ORDER":
-      return { ...state, orderNumber: "TL-DEMO-240724-018", screen: "success" };
-    default:
-      return state;
-  }
-}
+import { initialJourneyState, journeyReducer } from "./journey-reducer";
+import type { JourneyAction, JourneyState } from "./journey-types";
 
 const JourneyContext = createContext<{ state: JourneyState; dispatch: Dispatch<JourneyAction> } | null>(null);
 
 export function JourneyProvider({ children }: PropsWithChildren) {
-  const [state, dispatch] = useReducer(journeyReducer, initialState);
+  const [state, dispatch] = useReducer(journeyReducer, initialJourneyState);
   const value = useMemo(() => ({ state, dispatch }), [state]);
   return <JourneyContext.Provider value={value}>{children}</JourneyContext.Provider>;
 }

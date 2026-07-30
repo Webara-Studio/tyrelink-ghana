@@ -4,7 +4,7 @@ A mobile-first Ghanaian tyre marketplace connecting customers with compatible ty
 
 ## Current build
 
-This repository now contains a Next.js TypeScript PWA foundation. The original clickable prototype remains available as `index.html` for reference while the customer journey is migrated into reusable application components.
+This repository contains a native Next.js TypeScript application foundation. The customer and fitting-station journeys are implemented as reusable React features with a typed data boundary. PWA install/offline behaviour is deliberately deferred until the refactor has passed its verification gates.
 
 ## Core journey
 
