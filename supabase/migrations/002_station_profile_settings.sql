@@ -37,6 +37,9 @@ create index if not exists station_payment_methods_enabled_idx
   on tyrelink.station_payment_methods(station_id, payment_method)
   where enabled = true;
 
+grant select, insert, update, delete on table tyrelink.station_payment_methods
+  to anon, authenticated, service_role;
+
 alter table tyrelink.station_payment_methods enable row level security;
 
 create policy "enabled station payment methods are publicly viewable"
