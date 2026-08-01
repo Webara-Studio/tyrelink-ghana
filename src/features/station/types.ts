@@ -9,3 +9,15 @@ export type StationOrder = {
   appointment: string;
   status: "In transit" | "Received" | "Ready to fit";
 };
+
+export type StationServiceKey = "alignment" | "balancing" | "rotation" | "valve-replacement";
+export type StationPaymentMethodKey = "momo" | "card" | "cash" | "usdt";
+
+export type StationProfileSettings = {
+  businessName: string;
+  location: string;
+  openingHours: string;
+  fittingBays: string;
+  services: Record<StationServiceKey, boolean>;
+  paymentMethods: Record<StationPaymentMethodKey, boolean>;
+};

@@ -2,9 +2,23 @@
 
 import { useState, type ReactNode } from "react";
 import { stationOrders } from "./fixtures";
-import type { StationOrder, StationView } from "./types";
+import type { StationOrder, StationPaymentMethodKey, StationProfileSettings, StationServiceKey, StationView } from "./types";
 
 const orders = stationOrders;
+
+const serviceOptions: Array<{ key: StationServiceKey; label: string; description: string }> = [
+  { key: "alignment", label: "Wheel alignment", description: "Alignment checks and adjustments" },
+  { key: "balancing", label: "Wheel balancing", description: "Balancing tyres and wheels" },
+  { key: "rotation", label: "Tyre rotation", description: "Rotating tyres between wheel positions" },
+  { key: "valve-replacement", label: "Valve replacement", description: "Replacing valves during fitting" },
+];
+
+const paymentOptions: Array<{ key: StationPaymentMethodKey; label: string; description: string }> = [
+  { key: "momo", label: "Mobile Money (MoMo)", description: "Accept customer payments by MoMo" },
+  { key: "card", label: "Credit/debit card", description: "Accept card payments at the station" },
+  { key: "cash", label: "Cash", description: "Accept cash payments at the station" },
+  { key: "usdt", label: "USDT", description: "Accept USDT payments at the station" },
+];
 
 function Status({ children }: { children: ReactNode }) {
   const tone = children === "In transit" || children === "Action needed" ? "amber" : "green";
@@ -50,7 +64,53 @@ function Calendar({ setView }: { setView: (view: StationView) => void }) {
 
 function Settings({ setView }: { setView: (view: StationView) => void }) {
   const [saved, setSaved] = useState(false);
-  return <><PageIntro title="Your station profile." copy="Keep the station details customers and the operations team rely on." back={() => setView("overview")} /><section className="station-detail-card station-settings"><label>Business name<input className="journey-input" defaultValue="AutoCare East Legon" /></label><label>Location<input className="journey-input" defaultValue="East Legon, Accra" /></label><label>Opening hours<input className="journey-input" defaultValue="Monday–Saturday · 8:00 am–6:00 pm" /></label><label>Fitting bays<input className="journey-input" inputMode="numeric" defaultValue="4" /></label></section><button className="journey-button" onClick={() => setSaved(true)}>{saved ? "Station settings saved ✓" : "Save station settings"}</button></>;
+  const [profile, setProfile] = useState<StationProfileSettings>({
+    businessName: "AutoCare East Legon",
+    location: "East Legon, Accra",
+    openingHours: "Monday–Saturday · 8:00 am–6:00 pm",
+    fittingBays: "4",
+    services: { alignment: true, balancing: true, rotation: false, "valve-replacement": false },
+    paymentMethods: { momo: true, card: true, cash: true, usdt: false },
+  });
+
+  const updateField = (field: keyof Pick<StationProfileSettings, "businessName" | "location" | "openingHours" | "fittingBays">, value: string) => {
+    setSaved(false);
+    setProfile((current) => ({ ...current, [field]: value }));
+  };
+
+  const toggleSetting = (group: "services" | "paymentMethods", key: StationServiceKey | StationPaymentMethodKey) => {
+    setSaved(false);
+    setProfile((current) => {
+      const settings = current[group] as Record<string, boolean>;
+      return { ...current, [group]: { ...settings, [key]: !settings[key] } };
+    });
+  };
+
+  return <>
+    <PageIntro title="Your station profile." copy="Keep the station details customers and the operations team rely on." back={() => setView("overview")} />
+    <section className="station-detail-card station-settings">
+      <label>Business name<input className="journey-input" value={profile.businessName} onChange={(event) => updateField("businessName", event.target.value)} /></label>
+      <label>Location<input className="journey-input" value={profile.location} onChange={(event) => updateField("location", event.target.value)} /></label>
+      <label>Opening hours<input className="journey-input" value={profile.openingHours} onChange={(event) => updateField("openingHours", event.target.value)} /></label>
+      <label>Fitting bays<input className="journey-input" inputMode="numeric" value={profile.fittingBays} onChange={(event) => updateField("fittingBays", event.target.value)} /></label>
+    </section>
+
+    <section className="station-detail-card station-settings-panel" aria-labelledby="station-services-heading">
+      <div className="station-settings-heading"><div><span className="station-eyebrow">Services</span><h2 id="station-services-heading">Additional services</h2></div><p>Select the services customers can add to a booking at this station.</p></div>
+      <div className="station-option-list">{serviceOptions.map((option) => <SettingOption key={option.key} label={option.label} description={option.description} enabled={profile.services[option.key]} onToggle={() => toggleSetting("services", option.key)} />)}</div>
+    </section>
+
+    <section className="station-detail-card station-settings-panel" aria-labelledby="station-payments-heading">
+      <div className="station-settings-heading"><div><span className="station-eyebrow">Payments</span><h2 id="station-payments-heading">Accepted payment methods</h2></div><p>Choose which payment methods customers can use at this station.</p></div>
+      <div className="station-option-list">{paymentOptions.map((option) => <SettingOption key={option.key} label={option.label} description={option.description} enabled={profile.paymentMethods[option.key]} onToggle={() => toggleSetting("paymentMethods", option.key)} />)}</div>
+    </section>
+
+    <button className="journey-button" onClick={() => setSaved(true)}>{saved ? "Station settings saved ✓" : "Save station settings"}</button>
+  </>;
+}
+
+function SettingOption({ label, description, enabled, onToggle }: { label: string; description: string; enabled: boolean; onToggle: () => void }) {
+  return <div className={`station-setting-option${enabled ? " enabled" : ""}`}><div><strong>{label}</strong><span>{description}</span></div><div className="station-setting-toggle" role="group" aria-label={`${label} availability`}><button type="button" className={!enabled ? "selected" : ""} aria-pressed={!enabled} onClick={() => enabled && onToggle()}>No</button><button type="button" className={enabled ? "selected" : ""} aria-pressed={enabled} onClick={() => !enabled && onToggle()}>Yes</button></div></div>;
 }
 
 function PageIntro({ title, copy, back }: { title: string; copy: string; back: () => void }) {
