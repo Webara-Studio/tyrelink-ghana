@@ -72,11 +72,19 @@ The demo seed includes:
 
 The seed uses fixed station and service UUIDs and is safe to re-run for the demo environment.
 
-## Frontend status
+## Frontend integration
 
-The fitting-station portal currently exposes the settings controls and keeps the selected values in the portal’s client state. The database migration and API allow-list are now ready for the next integration step: loading the station profile from Supabase and saving authorised station updates through an authenticated mutation path.
+The fitting-station portal now uses the Supabase browser client with the signed-in user session:
 
-The public read route is available at:
+1. It signs in the station user with Supabase Auth.
+2. It resolves the user’s station through `tyrelink.station_accounts`.
+3. It loads the station’s service and payment-method rows.
+4. It writes Yes/No changes through `station_services` and `station_payment_methods`.
+5. RLS enforces that the user can only modify their own station.
+
+The portal does not use a service-role key in the browser. Accounts must exist in `auth.users` and be linked through `tyrelink.station_accounts` before they can edit settings. An account that is authenticated but not linked to a station is refused access to the live controls.
+
+The public read route remains available at:
 
 ```text
 /api/tyrelink/station_payment_methods
