@@ -5,6 +5,7 @@ const ALLOWED_RESOURCES = new Set([
   "supplier_inventory",
   "fitting_stations",
   "station_services",
+  "station_payment_methods",
   "station_slots",
 ]);
 

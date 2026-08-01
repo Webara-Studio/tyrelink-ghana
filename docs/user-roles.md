@@ -73,7 +73,8 @@ Fitting station can:
 
 - Maintain station details, location and opening hours.
 - Declare fitting bays and service capacity.
-- Publish fitting, balancing and alignment services.
+- Publish fitting, balancing, alignment, tyre rotation and valve replacement services.
+- Set the payment methods the station accepts: MoMo, credit/debit card, cash and USDT.
 - Create and manage appointment slots.
 - View orders assigned to the station.
 - Confirm tyres received.

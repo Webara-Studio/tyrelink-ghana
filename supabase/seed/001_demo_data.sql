@@ -45,7 +45,8 @@ values
   ('50000000-0000-4000-8000-000000000002', 'Wheel balancing', 'balancing', true),
   ('50000000-0000-4000-8000-000000000003', 'Wheel alignment', 'alignment', true),
   ('50000000-0000-4000-8000-000000000004', 'Valve replacement', 'valve', true),
-  ('50000000-0000-4000-8000-000000000005', 'Old tyre disposal', 'disposal', true)
+  ('50000000-0000-4000-8000-000000000005', 'Old tyre disposal', 'disposal', true),
+  ('50000000-0000-4000-8000-000000000006', 'Tyre rotation', 'rotation', true)
 on conflict (id) do nothing;
 
 insert into tyrelink.station_services (station_id, service_id, price, price_unit, duration_minutes, active)
@@ -65,6 +66,27 @@ from (values
 ) as v(station_id, service_id, price, price_unit, duration_minutes)
 join tyrelink.fitting_stations s on s.id = v.station_id
 on conflict (station_id, service_id) do nothing;
+
+insert into tyrelink.station_payment_methods (station_id, payment_method, enabled)
+values
+  ('40000000-0000-4000-8000-000000000001', 'momo', true),
+  ('40000000-0000-4000-8000-000000000001', 'card', true),
+  ('40000000-0000-4000-8000-000000000001', 'cash', true),
+  ('40000000-0000-4000-8000-000000000001', 'usdt', false),
+  ('40000000-0000-4000-8000-000000000002', 'momo', true),
+  ('40000000-0000-4000-8000-000000000002', 'card', true),
+  ('40000000-0000-4000-8000-000000000002', 'cash', true),
+  ('40000000-0000-4000-8000-000000000002', 'usdt', false),
+  ('40000000-0000-4000-8000-000000000003', 'momo', true),
+  ('40000000-0000-4000-8000-000000000003', 'card', true),
+  ('40000000-0000-4000-8000-000000000003', 'cash', true),
+  ('40000000-0000-4000-8000-000000000003', 'usdt', false),
+  ('40000000-0000-4000-8000-000000000004', 'momo', true),
+  ('40000000-0000-4000-8000-000000000004', 'card', true),
+  ('40000000-0000-4000-8000-000000000004', 'cash', true),
+  ('40000000-0000-4000-8000-000000000004', 'usdt', false)
+on conflict (station_id, payment_method) do update
+set enabled = excluded.enabled;
 
 insert into tyrelink.vehicle_fitments (id, make, model, year_from, year_to, product_id, recommended, notes)
 values

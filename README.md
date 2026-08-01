@@ -25,7 +25,13 @@ Copy `.env.example` to `.env.local` when the TyreLink Supabase API boundary is c
 
 ## Backend
 
-The TyreLink schema is maintained in `supabase/migrations/001_initial_schema.sql`. It is intended for the isolated TyreLink database boundary, separate from the existing Afrikiko data.
+The canonical TyreLink database boundary is the isolated `tyrelink` schema:
+
+- Base schema: `supabase/migrations/001_initial_schema_tyrelink.sql`
+- Station settings migration: `supabase/migrations/002_station_profile_settings.sql`
+- Demo data: `supabase/seed/001_demo_data.sql`
+
+The schema is separate from the existing Afrikiko data. See `docs/database.md` for the station settings model and migration notes.
 
 ## Roles
 
