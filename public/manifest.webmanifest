@@ -4,8 +4,8 @@
   "description": "Find the right tyres and book fitting at an approved Ghanaian station.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0b1117",
-  "theme_color": "#f5b72b",
+  "background_color": "#1C1C1C",
+  "theme_color": "#FFCC28",
   "lang": "en-GH",
   "icons": []
 }
