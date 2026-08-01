@@ -30,3 +30,11 @@ The TyreLink schema is maintained in `supabase/migrations/001_initial_schema.sql
 ## Roles
 
 See `docs/user-roles.md` for customer, admin, fitter and fitting-station boundaries.
+
+## Reference materials and brand assets
+
+- Project proposal: `docs/reference/tyrelink-proposal.pdf`
+- Brand guide: `docs/reference/tyrelink-brand-guide.pdf`
+- Logo assets: `public/brand/`
+
+See `docs/reference/README.md` and `public/brand/README.md` for the asset inventory and usage notes.
